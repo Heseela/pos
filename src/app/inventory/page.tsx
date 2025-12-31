@@ -1,16 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import InventoryTable from '@/components/inventory/InventoryTable';
 import InventoryForm from '@/components/inventory/InventoryForm';
+import InventoryView from '@/components/inventory/InventoryView';
 import { mockInventory } from '@/lib/mockData';
+import { InventoryItem } from '@/lib/types';
 import { Plus, Package, AlertTriangle } from 'lucide-react';
 
 export default function InventoryPage() {
-  const [inventory, setInventory] = useState(mockInventory);
+  const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory);
   const [showForm, setShowForm] = useState(false);
+  const [showView, setShowView] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [viewingItem, setViewingItem] = useState<InventoryItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Load from localStorage on initial render
+  useEffect(() => {
+    const savedInventory = localStorage.getItem('inventory');
+    if (savedInventory) {
+      setInventory(JSON.parse(savedInventory));
+    }
+  }, []);
+
+  // Save to localStorage whenever inventory changes
+  useEffect(() => {
+    localStorage.setItem('inventory', JSON.stringify(inventory));
+  }, [inventory]);
 
   const filteredInventory = inventory.filter(item => {
     const matchesSearch = 
@@ -23,9 +41,70 @@ export default function InventoryPage() {
   const lowStockItems = inventory.filter(item => item.quantity <= item.reorderLevel).length;
   const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * item.costPrice), 0);
 
-  const addInventoryItem = (newItem: any) => {
-    setInventory([...inventory, { ...newItem, id: `INV${String(inventory.length + 1).padStart(3, '0')}` }]);
+  const addInventoryItem = (newItem: InventoryItem) => {
+    const itemWithId = {
+      ...newItem,
+      id: `INV${String(inventory.length + 1).padStart(3, '0')}`
+    };
+    setInventory([...inventory, itemWithId]);
     setShowForm(false);
+  };
+
+  const updateInventoryItem = (updatedItem: InventoryItem) => {
+    const updatedInventory = inventory.map(item => 
+      item.id === updatedItem.id ? updatedItem : item
+    );
+    setInventory(updatedInventory);
+    setEditingItem(null);
+    setShowForm(false);
+  };
+
+  const deleteInventoryItem = (id: string) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this inventory item? This action cannot be undone.');
+    
+    if (confirmDelete) {
+      setInventory(inventory.filter(item => item.id !== id));
+    }
+  };
+
+  const handleEditItem = (item: InventoryItem) => {
+    setEditingItem(item);
+    setShowForm(true);
+  };
+
+  const handleViewItem = (item: InventoryItem) => {
+    setViewingItem(item);
+    setShowView(true);
+  };
+
+  const handleFormSubmit = (itemData: any) => {
+    const item: InventoryItem = {
+      id: editingItem?.id || `INV${String(inventory.length + 1).padStart(3, '0')}`,
+      name: itemData.name,
+      category: itemData.category,
+      quantity: itemData.quantity,
+      unit: itemData.unit,
+      reorderLevel: itemData.reorderLevel,
+      costPrice: itemData.costPrice,
+      sellingPrice: itemData.sellingPrice,
+      branchId: itemData.branchId
+    };
+
+    if (editingItem) {
+      updateInventoryItem(item);
+    } else {
+      addInventoryItem(item);
+    }
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingItem(null);
+  };
+
+  const handleCloseView = () => {
+    setShowView(false);
+    setViewingItem(null);
   };
 
   return (
@@ -36,7 +115,10 @@ export default function InventoryPage() {
           <p className="text-gray-600">Manage stock levels, reorder points, and item details</p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setEditingItem(null);
+            setShowForm(true);
+          }}
           className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-dark transition-colors"
         >
           <Plus size={20} />
@@ -109,15 +191,39 @@ export default function InventoryPage() {
           </select>
         </div>
 
-        <InventoryTable inventory={filteredInventory} />
+        <InventoryTable 
+          inventory={filteredInventory}
+          onEditItem={handleEditItem}
+          onDeleteItem={deleteInventoryItem}
+          onViewItem={handleViewItem}
+        />
       </div>
 
+      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <InventoryForm
-              onSubmit={addInventoryItem}
-              onClose={() => setShowForm(false)}
+              onSubmit={handleFormSubmit}
+              onClose={handleCloseForm}
+              item={editingItem}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* View Modal */}
+      {showView && viewingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <InventoryView
+              item={viewingItem}
+              onClose={handleCloseView}
+              onEdit={() => {
+                setShowView(false);
+                setEditingItem(viewingItem);
+                setShowForm(true);
+              }}
             />
           </div>
         </div>

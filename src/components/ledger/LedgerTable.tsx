@@ -1,10 +1,13 @@
 'use client';
 
 import { LedgerEntry } from '@/lib/types';
-import { ArrowUpRight, ArrowDownRight, Receipt, CreditCard, Truck, Banknote } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Receipt, CreditCard, Truck, Banknote, Eye, Edit, Trash2 } from 'lucide-react';
 
 interface LedgerTableProps {
   ledger: LedgerEntry[];
+  onViewEntry: (entry: LedgerEntry) => void;
+  onEditEntry: (entry: LedgerEntry) => void;
+  onDeleteEntry: (id: string) => void;
 }
 
 const typeIcons = {
@@ -21,12 +24,12 @@ const typeColors = {
   payment: 'bg-purple-100 text-purple-800',
 };
 
-export default function LedgerTable({ ledger }: LedgerTableProps) {
+export default function LedgerTable({ ledger, onViewEntry, onEditEntry, onDeleteEntry }: LedgerTableProps) {
   if (ledger.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-gray-400 mb-4">No ledger entries found</div>
-        <div className="text-gray-500">Try changing your date range</div>
+        <div className="text-gray-500">Try changing your search criteria</div>
       </div>
     );
   }
@@ -72,6 +75,9 @@ export default function LedgerTable({ ledger }: LedgerTableProps) {
                 </td>
                 <td className="py-3 px-4">
                   <div className="font-medium">{entry.description}</div>
+                  <div className="text-sm text-gray-500">
+                    ID: {entry.id}
+                  </div>
                 </td>
                 <td className="py-3 px-4">
                   {entry.debit > 0 ? (
@@ -99,9 +105,38 @@ export default function LedgerTable({ ledger }: LedgerTableProps) {
                   </div>
                 </td>
                 <td className="py-3 px-4">
-                  <button className="px-3 py-1 text-sm border rounded hover:bg-gray-100">
-                    View
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => onViewEntry(entry)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group relative"
+                      title="View details"
+                    >
+                      <Eye size={18} />
+                      <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        View
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => onEditEntry(entry)}
+                      className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors group relative"
+                      title="Edit entry"
+                    >
+                      <Edit size={18} />
+                      <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        Edit
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => onDeleteEntry(entry.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors group relative"
+                      title="Delete entry"
+                    >
+                      <Trash2 size={18} />
+                      <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        Delete
+                      </span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             );

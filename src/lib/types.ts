@@ -13,6 +13,8 @@ export interface Branch {
   location: string;
   phone: string;
   email: string;
+  manager?: string;    
+  capacity?: number;   
 }
 
 export interface OrderItem {
@@ -63,6 +65,26 @@ export interface Purchase {
   branchId: string;
 }
 
+export interface PurchaseItem {
+  id?: string;
+  itemName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  category: string;
+  unit: string;
+}
+
+export interface PurchaseFormData {
+  id?: string;
+  supplier: string;
+  purchaseDate: Date | string;
+  items: PurchaseItem[];
+  totalAmount: number;
+  branchId: string;
+  createdAt?: Date;
+}
+
 export interface LedgerEntry {
   id: string;
   date: Date;
@@ -84,4 +106,105 @@ export interface Report {
   netProfit: number;
   branchId: string;
   generatedAt: Date;
+}
+
+export interface AuthCredentials {
+  email: string;
+  password: string;
+  branch?: string;
+}
+
+export interface LoginResponse {
+  user: User;
+  token: string;
+  expiresIn: number;
+}
+
+export interface TableInfo {
+  id: string;
+  number: string;
+  capacity: number;
+  status: 'available' | 'occupied' | 'booked' | 'reserved';
+  currentOrder?: {
+    orderId: string;
+    customerName: string;
+    items: number;
+    totalAmount: number;
+    status: 'pending' | 'preparing' | 'served' | 'completed';
+  };
+}
+
+export interface FoodItem {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description?: string;
+  available: boolean;
+}
+
+export interface Branch {
+  id: string;
+  name: string;
+  location: string;
+  phone: string;
+  email: string;
+  manager?: string;
+  capacity?: number;
+  openingTime?: string;
+  closingTime?: string;
+  totalTables?: number;
+}
+
+export interface Order {
+  id: string;
+  orderType: 'dine-in' | 'takeaway' | 'online' | 'table-booking';
+  customerName?: string;
+  contact?: string;
+  address?: string;
+  tableNumber?: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
+  branchId: string;
+  createdAt: Date;
+  cashierId?: string;
+  waiterId?: string;
+  completedAt?: Date;
+  servedAt?: Date;
+  estimatedDelivery?: Date;
+  estimatedPickup?: Date;
+  bookingTime?: Date;
+  partySize?: number;
+}
+
+export interface LedgerEntry {
+  id: string;
+  date: Date;
+  description: string;
+  debit: number;
+  credit: number;
+  balance: number;
+  branchId: string;
+  type: 'sale' | 'purchase' | 'expense' | 'payment';
+  orderId?: string;
+  purchaseId?: string;
+  reference?: string;
+  status?: 'completed' | 'pending' | 'cancelled';
+  notes?: string;
+}
+
+
+export interface Report {
+  id: string;
+  type: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  period: string;
+  totalSales: number;
+  totalPurchases: number;
+  totalExpenses: number;
+  netProfit: number;
+  branchId: string;
+  generatedAt: Date;
+  totalOrders?: number;
+  averageOrderValue?: number;
 }

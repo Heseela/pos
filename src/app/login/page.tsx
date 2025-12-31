@@ -2,206 +2,236 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Lock } from 'lucide-react';
+import { login } from '@/lib/auth';
+import { Lock, Mail, Eye, EyeOff, Building, User as UserIcon } from 'lucide-react';
 
-const mockUsers = [
-  { id: '1', name: 'Admin User', email: 'admin@pos.com', password: 'admin123', role: 'admin' },
-  { id: '2', name: 'Delhi Branch Head', email: 'branch@pos.com', password: 'branch123', role: 'branch-head', branchId: '1' },
-  { id: '3', name: 'Cashier User', email: 'cashier@pos.com', password: 'cashier123', role: 'cashier', branchId: '1' },
-  { id: '4', name: 'Waiter User', email: 'waiter@pos.com', password: 'waiter123', role: 'waiter', branchId: '1' },
+// Mock users matching your mockData structure
+const demoUsers = [
+  { id: '1', name: 'Admin User', role: 'admin', email: 'admin@pos.com' },
+  { id: '2', name: 'KTM Branch Head', role: 'branch-head', branchId: '1', email: 'branch@pos.com' },
+  { id: '3', name: 'Pokhara Branch Head', role: 'branch-head', branchId: '2', email: 'branch2@pos.com' },
+  { id: '4', name: 'Cashier 1', role: 'cashier', branchId: '1', email: 'cashier@pos.com' },
+  { id: '5', name: 'Cashier 2', role: 'cashier', branchId: '2', email: 'cashier2@pos.com' },
+  { id: '6', name: 'Waiter 1', role: 'waiter', branchId: '1', email: 'waiter@pos.com' },
+  { id: '7', name: 'Waiter 2', role: 'waiter', branchId: '2', email: 'waiter2@pos.com' },
 ];
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedRole, setSelectedRole] = useState('admin');
+  const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Helper function to set cookies for middleware
+  const setAuthCookies = (user: any) => {
+    // Set user cookie (7 days expiry)
+    const userData = encodeURIComponent(JSON.stringify(user));
+    document.cookie = `user=${userData}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+    
+    // Set authentication flag
+    document.cookie = `isAuthenticated=true; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     setError('');
 
-    // For demo, use the selected role directly
-    const user = mockUsers.find(u => u.role === selectedRole);
+    // Use your existing login function
+    const user = login(email, password);
     
     if (user) {
-      // Store user in localStorage for session
+      // Store user in localStorage for client-side access
       localStorage.setItem('currentUser', JSON.stringify(user));
       localStorage.setItem('isAuthenticated', 'true');
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Set cookies for middleware server-side access
+      setAuthCookies(user);
+      
+      // Simulate API delay
+      setTimeout(() => {
+        // Redirect based on role
+        const defaultRoute = getDefaultRoute(user.role);
+        router.push(defaultRoute);
+      }, 500);
     } else {
-      setError('Invalid credentials');
+      setError('Invalid credentials. Use any name + "password123"');
+      setLoading(false);
     }
   };
 
-  const handleQuickLogin = (role: string) => {
-    const user = mockUsers.find(u => u.role === role);
-    if (user) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      localStorage.setItem('isAuthenticated', 'true');
-      router.push('/dashboard');
+  const handleQuickLogin = (userEmail: string) => {
+    setEmail(userEmail);
+    setPassword('password123'); // Default password
+  };
+
+  // Helper function to get default route
+  const getDefaultRoute = (role: string): string => {
+    switch(role) {
+      case 'admin': return '/dashboard';
+      case 'branch-head': return '/dashboard'; // Changed from '/orders' to '/dashboard'
+      case 'cashier': return '/dashboard'; // Changed from '/pos' to '/dashboard'
+      case 'waiter': return '/dashboard'; // Changed from '/orders' to '/dashboard'
+      default: return '/dashboard';
+    }
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch(role) {
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'branch-head': return 'bg-blue-100 text-blue-800';
+      case 'cashier': return 'bg-green-100 text-green-800';
+      case 'waiter': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-8">
-          {/* Logo Header */}
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Left side - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-primary to-primary-dark">
+        <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-                <User className="text-white" size={24} />
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                <Lock className="text-primary" size={24} />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                <span className="text-primary">POS</span>
-                <span className="text-secondary">System</span>
-              </h1>
+              <h1 className="text-4xl font-bold text-white">POS System</h1>
             </div>
-            <p className="text-gray-600">Sign in to access your dashboard</p>
+            <h2 className="text-xl text-white/90">Welcome back</h2>
+            <p className="text-white/70 mt-2">Enter your credentials to continue</p>
           </div>
 
-          {/* Quick Login Buttons */}
-          <div className="mb-8">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Login by Role:</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => handleQuickLogin('admin')}
-                className="p-3 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors"
-              >
-                <div className="font-medium text-primary-800">Admin</div>
-                <div className="text-xs text-primary-600">Full access</div>
-              </button>
-              <button
-                onClick={() => handleQuickLogin('branch-head')}
-                className="p-3 bg-secondary-50 border border-secondary-200 rounded-lg hover:bg-secondary-100 transition-colors"
-              >
-                <div className="font-medium text-secondary-800">Branch Head</div>
-                <div className="text-xs text-secondary-600">Branch management</div>
-              </button>
-              <button
-                onClick={() => handleQuickLogin('cashier')}
-                className="p-3 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
-              >
-                <div className="font-medium text-green-800">Cashier</div>
-                <div className="text-xs text-green-600">Orders & payments</div>
-              </button>
-              <button
-                onClick={() => handleQuickLogin('waiter')}
-                className="p-3 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors"
-              >
-                <div className="font-medium text-orange-800">Waiter</div>
-                <div className="text-xs text-orange-600">Order management</div>
-              </button>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="relative mb-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or sign in with credentials</span>
-            </div>
-          </div>
-
-          {/* Login Form */}
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                 {error}
               </div>
             )}
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
-                </label>
-                <select
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
-                  <option value="admin">Administrator</option>
-                  <option value="branch-head">Branch Head</option>
-                  <option value="cashier">Cashier</option>
-                  <option value="waiter">Waiter</option>
-                </select>
+            <div>
+              <label className="block text-white text-sm font-medium mb-2">
+                Email or Username
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent"
+                  placeholder="admin or admin@pos.com"
+                  required
+                />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User size={18} className="text-gray-400" />
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="Enter email"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-gray-400" />
-                  </div>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="Enter password"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
-                  />
-                  <label className="ml-2 text-sm text-gray-700">
-                    Remember me
-                  </label>
-                </div>
-                <a href="#" className="text-sm text-primary hover:text-primary-dark">
-                  Forgot password?
-                </a>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-              >
-                Sign In
-              </button>
             </div>
+
+            <div>
+              <label className="block text-white text-sm font-medium mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent"
+                  placeholder="password123"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 bg-white text-primary font-semibold rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
           </form>
 
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h4>
-            <div className="space-y-1 text-sm text-gray-600">
-              <div>• Admin: admin@pos.com / admin123</div>
-              <div>• Branch Head: branch@pos.com / branch123</div>
-              <div>• Cashier: cashier@pos.com / cashier123</div>
-              <div>• Waiter: waiter@pos.com / waiter123</div>
-            </div>
+          <div className="mt-8 text-center">
+            <p className="text-white/60 text-sm">
+              © {new Date().getFullYear()} POS System. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right side - Quick Access */}
+      <div className="flex-1 bg-gray-50 p-8">
+        <div className="max-w-md mx-auto h-full flex flex-col justify-center">
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold text-gray-900">Quick Access</h3>
+            <p className="text-gray-600 mt-2">
+              Click any account to auto-fill credentials
+            </p>
+            <p className="text-sm text-gray-500 mt-4">
+              These are demo accounts for testing. Each has different access levels and permissions.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {demoUsers.map((user) => (
+              <button
+                key={user.id}
+                onClick={() => handleQuickLogin(user.name)}
+                className="w-full p-4 bg-white border border-gray-200 rounded-lg hover:border-primary hover:shadow-md transition-all text-left group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    user.role === 'admin' ? 'bg-red-50' :
+                    user.role === 'branch-head' ? 'bg-blue-50' :
+                    user.role === 'cashier' ? 'bg-green-50' : 'bg-yellow-50'
+                  }`}>
+                    {user.role === 'admin' ? (
+                      <Building className="text-red-600" size={20} />
+                    ) : (
+                      <UserIcon className={
+                        user.role === 'branch-head' ? 'text-blue-600' :
+                        user.role === 'cashier' ? 'text-green-600' : 'text-yellow-600'
+                      } size={20} />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 group-hover:text-primary">
+                      {user.name}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      {user.email}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getRoleBadgeColor(user.role)}`}>
+                      {user.role.replace('-', ' ')}
+                    </span>
+                    <div className="text-xs text-gray-400 mt-1">
+                      Password: password123
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-medium text-blue-900 mb-2">Login Instructions</h4>
+            <ul className="space-y-2 text-sm text-blue-700">
+              <li>• Use any username from the list above</li>
+              <li>• Password is always: <code className="bg-blue-100 px-1 rounded">password123</code></li>
+              <li>• Each role has different permissions</li>
+            </ul>
           </div>
         </div>
       </div>

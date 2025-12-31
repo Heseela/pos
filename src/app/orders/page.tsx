@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import OrderForm from '@/components/orders/OrderForm';
 import OrderList from '@/components/orders/OrderList';
-import OrderTypeSelector from '@/components/orders/OrderTypeSelector';
 import { mockOrders } from '@/lib/mockData';
 import { Plus, Filter } from 'lucide-react';
 
@@ -15,7 +14,7 @@ export default function OrdersPage() {
 
   const filteredOrders = orders.filter(order => {
     const matchesType = orderType === 'all' || order.orderType === orderType;
-    const matchesSearch = 
+    const matchesSearch =
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.contact?.includes(searchTerm);
@@ -43,7 +42,7 @@ export default function OrdersPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div>
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg border p-4">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -76,9 +75,9 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        <div>
+        {/* <div>
           <OrderTypeSelector />
-        </div>
+        </div> */}
       </div>
 
       {showForm && (

@@ -2,23 +2,29 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { InventoryItem } from '@/lib/types';
 
 interface InventoryFormProps {
   onSubmit: (item: any) => void;
   onClose: () => void;
+  item?: InventoryItem | null;
 }
 
-export default function InventoryForm({ onSubmit, onClose }: InventoryFormProps) {
+export default function InventoryForm({ onSubmit, onClose, item }: InventoryFormProps) {
+  const isEditing = !!item;
+  
   const [formData, setFormData] = useState({
-    name: '',
-    category: 'Vegetables',
-    quantity: 0,
-    unit: 'kg',
-    reorderLevel: 10,
-    costPrice: 0,
-    sellingPrice: 0,
-    branchId: '1',
+    name: item?.name || '',
+    category: item?.category || 'Vegetables',
+    quantity: item?.quantity || 0,
+    unit: item?.unit || 'kg',
+    reorderLevel: item?.reorderLevel || 10,
+    costPrice: item?.costPrice || 0,
+    sellingPrice: item?.sellingPrice || 0,
+    branchId: item?.branchId || '1',
   });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -28,17 +34,65 @@ export default function InventoryForm({ onSubmit, onClose }: InventoryFormProps)
         ? parseFloat(value) || 0 
         : value
     }));
+
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Item name is required';
+    }
+
+    if (formData.quantity < 0) {
+      newErrors.quantity = 'Quantity cannot be negative';
+    }
+
+    if (formData.reorderLevel < 0) {
+      newErrors.reorderLevel = 'Reorder level cannot be negative';
+    }
+
+    if (formData.costPrice < 0) {
+      newErrors.costPrice = 'Cost price cannot be negative';
+    }
+
+    if (formData.sellingPrice < 0) {
+      newErrors.sellingPrice = 'Selling price cannot be negative';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     onSubmit(formData);
+  };
+
+  const calculateStockValue = () => {
+    return formData.quantity * formData.costPrice;
+  };
+
+  const calculateProfitMargin = () => {
+    if (!formData.sellingPrice || formData.costPrice === 0) return 0;
+    return ((formData.sellingPrice - formData.costPrice) / formData.costPrice) * 100;
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Add Inventory Item</h2>
+        <h2 className="text-2xl font-bold text-gray-900">
+          {isEditing ? 'Edit Inventory Item' : 'Add Inventory Item'}
+        </h2>
         <button
           type="button"
           onClick={onClose}
@@ -59,9 +113,12 @@ export default function InventoryForm({ onSubmit, onClose }: InventoryFormProps)
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+              errors.name ? 'border-red-500' : ''
+            }`}
             placeholder="Enter item name"
           />
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
         </div>
 
         <div>
@@ -97,8 +154,11 @@ export default function InventoryForm({ onSubmit, onClose }: InventoryFormProps)
             onChange={handleChange}
             required
             min="0"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+              errors.quantity ? 'border-red-500' : ''
+            }`}
           />
+          {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
         </div>
 
         <div>
@@ -133,8 +193,11 @@ export default function InventoryForm({ onSubmit, onClose }: InventoryFormProps)
             onChange={handleChange}
             required
             min="0"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+              errors.reorderLevel ? 'border-red-500' : ''
+            }`}
           />
+          {errors.reorderLevel && <p className="text-red-500 text-sm mt-1">{errors.reorderLevel}</p>}
         </div>
 
         <div>
@@ -149,8 +212,11 @@ export default function InventoryForm({ onSubmit, onClose }: InventoryFormProps)
             required
             min="0"
             step="0.01"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+              errors.costPrice ? 'border-red-500' : ''
+            }`}
           />
+          {errors.costPrice && <p className="text-red-500 text-sm mt-1">{errors.costPrice}</p>}
         </div>
 
         <div>
@@ -164,8 +230,11 @@ export default function InventoryForm({ onSubmit, onClose }: InventoryFormProps)
             onChange={handleChange}
             min="0"
             step="0.01"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
+              errors.sellingPrice ? 'border-red-500' : ''
+            }`}
           />
+          {errors.sellingPrice && <p className="text-red-500 text-sm mt-1">{errors.sellingPrice}</p>}
         </div>
 
         <div>
@@ -185,6 +254,23 @@ export default function InventoryForm({ onSubmit, onClose }: InventoryFormProps)
         </div>
       </div>
 
+      {/* Summary */}
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        <h3 className="font-semibold text-gray-700 mb-2">Summary</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <div className="text-sm text-gray-500">Stock Value</div>
+            <div className="font-medium">RS.{calculateStockValue().toFixed(2)}</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-500">Profit Margin</div>
+            <div className={`font-medium ${calculateProfitMargin() > 0 ? 'text-green-600' : 'text-gray-600'}`}>
+              {formData.sellingPrice ? `${calculateProfitMargin().toFixed(1)}%` : 'N/A'}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="mt-8 pt-6 border-t">
         <div className="flex justify-end gap-4">
           <button
@@ -198,7 +284,7 @@ export default function InventoryForm({ onSubmit, onClose }: InventoryFormProps)
             type="submit"
             className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
           >
-            Add Item
+            {isEditing ? 'Update Item' : 'Add Item'}
           </button>
         </div>
       </div>
