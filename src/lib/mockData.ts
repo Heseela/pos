@@ -1,4 +1,4 @@
-import { Branch, User, Order, InventoryItem, Purchase, LedgerEntry, Report } from './types';
+import { Branch, User, Order, InventoryItem, Purchase, LedgerEntry, Report, FoodItem, Table } from './types';
 
 export const mockUsers: User[] = [
   { id: '1', name: 'Admin User', role: 'admin' },
@@ -39,6 +39,38 @@ export const mockBranches: Branch[] = [
     capacity: 50               
   },
 ];
+
+export const mockFoodItems: FoodItem[] = [
+  { id: '1', name: 'Butter Chicken', category: 'Main Course', price: 350, description: 'Rich creamy curry', available: true },
+  { id: '2', name: 'Paneer Tikka', category: 'Appetizer', price: 280, description: 'Grilled cottage cheese', available: true },
+  { id: '3', name: 'Garlic Naan', category: 'Bread', price: 50, description: 'Garlic flavored bread', available: true },
+  { id: '4', name: 'Fried Rice', category: 'Main Course', price: 180, description: 'Vegetable fried rice', available: true },
+  { id: '5', name: 'Coke', category: 'Beverage', price: 60, description: 'Soft drink', available: true },
+  { id: '6', name: 'Mineral Water', category: 'Beverage', price: 40, description: '500ml bottle', available: true },
+  { id: '7', name: 'Chicken Biryani', category: 'Main Course', price: 320, description: 'Aromatic rice dish', available: true },
+  { id: '8', name: 'Veg Manchurian', category: 'Appetizer', price: 220, description: 'Indo-Chinese starter', available: true },
+  { id: '9', name: 'Butter Roti', category: 'Bread', price: 30, description: 'Plain buttered bread', available: true },
+  { id: '10', name: 'Lassi', category: 'Beverage', price: 80, description: 'Sweet yogurt drink', available: true },
+  { id: '11', name: 'Chicken Tikka', category: 'Appetizer', price: 300, description: 'Grilled chicken', available: true },
+  { id: '12', name: 'Dal Makhani', category: 'Main Course', price: 200, description: 'Creamy lentil curry', available: true },
+  { id: '13', name: 'Raita', category: 'Side Dish', price: 60, description: 'Yogurt dip', available: true },
+  { id: '14', name: 'Gulab Jamun', category: 'Dessert', price: 90, description: 'Sweet milk balls', available: true },
+  { id: '15', name: 'Ice Cream', category: 'Dessert', price: 120, description: 'Vanilla ice cream', available: true },
+];
+
+export const mockTables: Table[] = [
+  { id: '1', number: '01', capacity: 2, status: 'available' },
+  { id: '2', number: '02', capacity: 4, status: 'occupied', currentOrder: { orderId: 'ORD001', customerName: 'John Doe', items: 3, totalAmount: 1020, status: 'pending' } },
+  { id: '3', number: '03', capacity: 6, status: 'available' },
+  { id: '4', number: '04', capacity: 4, status: 'occupied', currentOrder: { orderId: 'ORD004', customerName: 'Alice Johnson', items: 4, totalAmount: 820, status: 'served' } },
+  { id: '5', number: '05', capacity: 8, status: 'booked' },
+  { id: '6', number: '06', capacity: 2, status: 'available' },
+  { id: '7', number: '07', capacity: 4, status: 'occupied', currentOrder: { orderId: 'ORD007', customerName: 'David Lee', items: 4, totalAmount: 910, status: 'preparing' } },
+  { id: '8', number: '08', capacity: 6, status: 'available' },
+  { id: '9', number: '09', capacity: 4, status: 'reserved' },
+  { id: '10', number: '10', capacity: 2, status: 'available' },
+];
+
 
 export const mockOrders: Order[] = [
   {

@@ -120,28 +120,28 @@ export interface LoginResponse {
   expiresIn: number;
 }
 
-export interface TableInfo {
-  id: string;
-  number: string;
-  capacity: number;
-  status: 'available' | 'occupied' | 'booked' | 'reserved';
-  currentOrder?: {
-    orderId: string;
-    customerName: string;
-    items: number;
-    totalAmount: number;
-    status: 'pending' | 'preparing' | 'served' | 'completed';
-  };
-}
+// export interface TableInfo {
+//   id: string;
+//   number: string;
+//   capacity: number;
+//   status: 'available' | 'occupied' | 'booked' | 'reserved';
+//   currentOrder?: {
+//     orderId: string;
+//     customerName: string;
+//     items: number;
+//     totalAmount: number;
+//     status: 'pending' | 'preparing' | 'served' | 'completed';
+//   };
+// }
 
-export interface FoodItem {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  description?: string;
-  available: boolean;
-}
+// export interface FoodItem {
+//   id: string;
+//   name: string;
+//   category: string;
+//   price: number;
+//   description?: string;
+//   available: boolean;
+// }
 
 export interface Branch {
   id: string;
@@ -194,6 +194,48 @@ export interface LedgerEntry {
   notes?: string;
 }
 
+export interface Table {
+  id: string;
+  number: string;
+  capacity: number;
+  status: 'available' | 'occupied' | 'booked' | 'reserved';
+  currentOrder?: {
+    orderId: string;
+    customerName: string;
+    items: number;
+    totalAmount: number;
+    status: 'pending' | 'preparing' | 'served' | 'completed';
+  };
+}
+
+export interface FoodItem {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description?: string;
+  available: boolean;
+}
+
+export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  total: number;
+  category: string;
+}
+
+export interface BillingInfo {
+  subtotal: number;
+  tax: number;
+  discount: number;
+  serviceCharge: number;
+  grandTotal: number;
+  paymentMethod?: 'cash' | 'card' | 'online';
+  amountPaid?: number;
+  change?: number;
+}
 
 export interface Report {
   id: string;
