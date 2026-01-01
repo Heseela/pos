@@ -60,12 +60,12 @@ export const mockFoodItems: FoodItem[] = [
 
 export const mockTables: Table[] = [
   { id: '1', number: '01', capacity: 2, status: 'available' },
-  { id: '2', number: '02', capacity: 4, status: 'occupied', currentOrder: { orderId: 'ORD001', customerName: 'John Doe', items: 3, totalAmount: 1020, status: 'pending' } },
+  { id: '2', number: '02', capacity: 4, status: 'occupied', currentOrder: { orderId: 'ORD001', items: 3, totalAmount: 1020, status: 'pending' } },
   { id: '3', number: '03', capacity: 6, status: 'available' },
-  { id: '4', number: '04', capacity: 4, status: 'occupied', currentOrder: { orderId: 'ORD004', customerName: 'Alice Johnson', items: 4, totalAmount: 820, status: 'served' } },
+  { id: '4', number: '04', capacity: 4, status: 'occupied', currentOrder: { orderId: 'ORD004', items: 4, totalAmount: 820, status: 'served' } },
   { id: '5', number: '05', capacity: 8, status: 'booked' },
   { id: '6', number: '06', capacity: 2, status: 'available' },
-  { id: '7', number: '07', capacity: 4, status: 'occupied', currentOrder: { orderId: 'ORD007', customerName: 'David Lee', items: 4, totalAmount: 910, status: 'preparing' } },
+  { id: '7', number: '07', capacity: 4, status: 'occupied', currentOrder: { orderId: 'ORD007', items: 4, totalAmount: 910, status: 'preparing' } },
   { id: '8', number: '08', capacity: 6, status: 'available' },
   { id: '9', number: '09', capacity: 4, status: 'reserved' },
   { id: '10', number: '10', capacity: 2, status: 'available' },

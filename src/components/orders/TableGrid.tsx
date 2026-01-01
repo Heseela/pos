@@ -64,7 +64,6 @@ export default function TableGrid({ tables, selectedTable, onTableClick }: Table
             
             {table.currentOrder && (
               <div className="mt-2 text-sm text-left">
-                <div className="font-medium">{table.currentOrder.customerName}</div>
                 <div className="text-gray-600">
                   {table.currentOrder.items} items • RS.{table.currentOrder.totalAmount}
                 </div>

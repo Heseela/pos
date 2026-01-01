@@ -26,7 +26,6 @@ export default function BillPreview({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg w-full max-w-3xl">
         <div className="p-6">
-          {/* Bill Header */}
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold">SAMPLE RESTAURANT</h2>
             <p className="text-gray-600">123 Main Street, Kathmandu</p>
@@ -38,13 +37,11 @@ export default function BillPreview({
             </div>
           </div>
 
-          {/* Customer Info */}
           <div className="mb-4">
             <p><strong>Customer:</strong> {customerName || 'Walk-in Customer'}</p>
             <p><strong>Table:</strong> {tableNumber || 'Takeaway'}</p>
           </div>
 
-          {/* Items List */}
           <div className="mb-6">
             <div className="grid grid-cols-12 gap-2 font-bold border-b pb-2 mb-2">
               <div className="col-span-6">Item</div>
@@ -62,7 +59,6 @@ export default function BillPreview({
             ))}
           </div>
 
-          {/* Totals */}
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Sub Total:</span>
@@ -81,11 +77,9 @@ export default function BillPreview({
           {/* Footer */}
           <div className="mt-8 text-center text-sm text-gray-500">
             <p>Thank you for dining with us!</p>
-            <p>*** This is a sample bill ***</p>
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="border-t p-4 flex gap-4">
           <button
             onClick={onClose}

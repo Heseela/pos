@@ -201,7 +201,6 @@ export interface Table {
   status: 'available' | 'occupied' | 'booked' | 'reserved';
   currentOrder?: {
     orderId: string;
-    customerName: string;
     items: number;
     totalAmount: number;
     status: 'pending' | 'preparing' | 'served' | 'completed';
