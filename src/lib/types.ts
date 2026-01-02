@@ -119,29 +119,23 @@ export interface LoginResponse {
   token: string;
   expiresIn: number;
 }
-
-// export interface TableInfo {
-//   id: string;
-//   number: string;
-//   capacity: number;
-//   status: 'available' | 'occupied' | 'booked' | 'reserved';
-//   currentOrder?: {
-//     orderId: string;
-//     customerName: string;
-//     items: number;
-//     totalAmount: number;
-//     status: 'pending' | 'preparing' | 'served' | 'completed';
-//   };
-// }
-
-// export interface FoodItem {
-//   id: string;
-//   name: string;
-//   category: string;
-//   price: number;
-//   description?: string;
-//   available: boolean;
-// }
+ 
+export interface SavedBill {
+  id: string;
+  billType: 'table' | 'individual';
+  tableNumber?: string;
+  customerName: string;
+  customerContact?: string;
+  customerAddress?: string;
+  orderType?: 'dine-in' | 'takeaway' | 'delivery';
+  cart: CartItem[];
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  createdAt: Date;
+  isPaid: boolean;
+}
 
 export interface Branch {
   id: string;

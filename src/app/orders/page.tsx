@@ -6,7 +6,7 @@ import MenuItems from '@/components/orders/MenuItems';
 import OrderCart from '@/components/orders/OrderCart';
 import IndividualOrderCart from '@/components/orders/IndividualOrderCart';
 import BillPreview from '@/components/orders/BillPreview';
-import { Table, FoodItem, CartItem } from '@/lib/types';
+import { Table, FoodItem, CartItem, SavedBill } from '@/lib/types';
 import { mockTables, mockFoodItems } from '@/lib/mockData';
 import { Utensils, User } from 'lucide-react';
 
@@ -24,6 +24,9 @@ export default function OrdersPage() {
   const [showBill, setShowBill] = useState(false);
   const [foodItems] = useState<FoodItem[]>(mockFoodItems);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [savedBills, setSavedBills] = useState<SavedBill[]>([]);
+  const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
 
   // Reset cart when switching tabs
   useEffect(() => {
@@ -33,33 +36,78 @@ export default function OrdersPage() {
       setCustomerContact('');
       setCustomerAddress('');
       setSelectedTable(null);
+      setDiscountPercentage(0);
+      setDiscountAmount(0);
     } else {
       setCart([]);
       setCustomerName('');
       setCustomerContact('');
       setCustomerAddress('');
       setSelectedTable(null);
+      setDiscountPercentage(0);
+      setDiscountAmount(0);
     }
   }, [activeTab]);
 
-  const filteredFoodItems = filterCategory === 'all' 
-    ? foodItems 
+  const filteredFoodItems = filterCategory === 'all'
+    ? foodItems
     : foodItems.filter(item => item.category === filterCategory);
 
   const handleTableClick = (table: Table) => {
     setSelectedTable(table);
     setCart([]);
+    setDiscountPercentage(0);
+    setDiscountAmount(0);
   };
 
   const handleBackToTables = () => {
     setSelectedTable(null);
     setCart([]);
     setCustomerName('');
+    setDiscountPercentage(0);
+    setDiscountAmount(0);
+  };
+
+  const handleApplyDiscount = (percentage: number, amount: number) => {
+    setDiscountPercentage(percentage);
+    setDiscountAmount(amount);
+  };
+
+  const handleSaveBill = (billData: SavedBill) => {
+    setSavedBills(prev => [billData, ...prev]);
+  };
+
+  const handleLoadSavedBill = (billId: string) => {
+    const bill = savedBills.find(b => b.id === billId);
+    if (bill) {
+      setCart(bill.cart);
+      setDiscountPercentage(bill.discount);
+      
+      if (bill.billType === 'table') {
+        // For table bills
+        setCustomerName(bill.customerName);
+        setActiveTab('table');
+        // Don't auto-select table as it might not exist
+      } else {
+        // For individual bills
+        setCustomerName(bill.customerName);
+        setCustomerContact(bill.customerContact || '');
+        setCustomerAddress(bill.customerAddress || '');
+        if (bill.orderType) {
+          setOrderType(bill.orderType);
+        }
+        setActiveTab('individual');
+      }
+    }
+  };
+
+  const handleDeleteSavedBill = (billId: string) => {
+    setSavedBills(prev => prev.filter(bill => bill.id !== billId));
   };
 
   const handlePlaceTableOrder = () => {
     if (!selectedTable) return;
-    
+
     const updatedTables = tables.map(table => {
       if (table.id === selectedTable.id) {
         return {
@@ -76,8 +124,14 @@ export default function OrdersPage() {
       }
       return table;
     });
-    
+
     setTables(updatedTables);
+
+    // Remove saved bills for this table
+    setSavedBills(prev => prev.filter(bill => 
+      !(bill.billType === 'table' && bill.tableNumber === selectedTable.number)
+    ));
+
     alert('Table order placed successfully!');
     handleBackToTables();
   };
@@ -109,17 +163,22 @@ export default function OrdersPage() {
       status: 'pending' as const
     };
 
-    
+    console.log('Individual Order:', orderDetails);
+
     alert(`${orderType === 'delivery' ? 'Delivery' : 'Takeaway'} order placed successfully!`);
-    
+
     setCart([]);
     setCustomerName('');
     setCustomerContact('');
     setCustomerAddress('');
+    setDiscountPercentage(0);
+    setDiscountAmount(0);
   };
 
   const clearCart = () => {
     setCart([]);
+    setDiscountPercentage(0);
+    setDiscountAmount(0);
     if (activeTab === 'individual') {
       setCustomerName('');
       setCustomerContact('');
@@ -131,12 +190,23 @@ export default function OrdersPage() {
     return cart.reduce((sum, item) => sum + item.total, 0);
   };
 
+  const calculateDiscount = () => {
+    if (discountPercentage > 0) {
+      return calculateSubtotal() * (discountPercentage / 100);
+    }
+    return 0;
+  };
+
+  const calculateTaxableAmount = () => {
+    return calculateSubtotal() - calculateDiscount();
+  };
+
   const calculateTax = () => {
-    return calculateSubtotal() * 0.13;
+    return calculateTaxableAmount() * 0.13;
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
+    return calculateTaxableAmount() + calculateTax();
   };
 
   const handleAddToCart = (item: FoodItem) => {
@@ -146,10 +216,10 @@ export default function OrdersPage() {
         return prev.map(cartItem =>
           cartItem.id === item.id
             ? {
-                ...cartItem,
-                quantity: cartItem.quantity + 1,
-                total: (cartItem.quantity + 1) * cartItem.price
-              }
+              ...cartItem,
+              quantity: cartItem.quantity + 1,
+              total: (cartItem.quantity + 1) * cartItem.price
+            }
             : cartItem
         );
       }
@@ -194,22 +264,20 @@ export default function OrdersPage() {
           <div className="flex border-b">
             <button
               onClick={() => setActiveTab('table')}
-              className={`flex-1 px-6 py-4 text-lg font-medium flex items-center justify-center gap-3 ${
-                activeTab === 'table'
+              className={`flex-1 px-6 py-4 text-lg font-medium flex items-center justify-center gap-3 ${activeTab === 'table'
                   ? 'border-b-2 border-primary text-primary'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               <Utensils className="w-5 h-5" />
               Table Orders
             </button>
             <button
               onClick={() => setActiveTab('individual')}
-              className={`flex-1 px-6 py-4 text-lg font-medium flex items-center justify-center gap-3 ${
-                activeTab === 'individual'
+              className={`flex-1 px-6 py-4 text-lg font-medium flex items-center justify-center gap-3 ${activeTab === 'individual'
                   ? 'border-b-2 border-primary text-primary'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               <User className="w-5 h-5" />
               Individual Orders
@@ -252,7 +320,7 @@ export default function OrdersPage() {
                     onAddToCart={handleAddToCart}
                   />
                 </div>
-                
+
                 <div className="lg:col-span-1">
                   <OrderCart
                     selectedTable={selectedTable}
@@ -267,6 +335,13 @@ export default function OrdersPage() {
                     subtotal={calculateSubtotal()}
                     tax={calculateTax()}
                     total={calculateTotal()}
+                    onApplyDiscount={handleApplyDiscount}
+                    onSaveBill={handleSaveBill}
+                    savedBills={savedBills.filter(bill => 
+                      bill.billType === 'table' && (!selectedTable || bill.tableNumber === selectedTable.number)
+                    )}
+                    onLoadSavedBill={handleLoadSavedBill}
+                    onDeleteSavedBill={handleDeleteSavedBill}
                   />
                 </div>
               </div>
@@ -282,7 +357,7 @@ export default function OrdersPage() {
                 onAddToCart={handleAddToCart}
               />
             </div>
-            
+
             <div className="lg:col-span-1">
               <IndividualOrderCart
                 cart={cart}
@@ -302,6 +377,11 @@ export default function OrdersPage() {
                 subtotal={calculateSubtotal()}
                 tax={calculateTax()}
                 total={calculateTotal()}
+                onApplyDiscount={handleApplyDiscount}
+                onSaveBill={handleSaveBill}
+                savedBills={savedBills.filter(bill => bill.billType === 'individual')}
+                onLoadSavedBill={handleLoadSavedBill}
+                onDeleteSavedBill={handleDeleteSavedBill}
               />
             </div>
           </div>
@@ -313,6 +393,10 @@ export default function OrdersPage() {
           cart={cart}
           customerName={customerName}
           tableNumber={selectedTable?.number || (orderType === 'takeaway' ? 'Takeaway' : 'Delivery')}
+          billType={activeTab === 'table' ? 'table' : 'individual'}
+          customerContact={customerContact}
+          customerAddress={customerAddress}
+          individualOrderType={orderType}
           subtotal={calculateSubtotal()}
           tax={calculateTax()}
           total={calculateTotal()}
