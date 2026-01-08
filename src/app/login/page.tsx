@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { login } from '@/lib/auth';
 import { Lock, Mail, Eye, EyeOff, Building, User as UserIcon } from 'lucide-react';
 
-// Mock users matching your mockData structure
 const demoUsers = [
   { id: '1', name: 'Admin User', role: 'admin', email: 'admin@pos.com' },
   { id: '2', name: 'KTM Branch Head', role: 'branch-head', branchId: '1', email: 'branch@pos.com' },
@@ -24,13 +23,10 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  // Helper function to set cookies for middleware
   const setAuthCookies = (user: any) => {
-    // Set user cookie (7 days expiry)
     const userData = encodeURIComponent(JSON.stringify(user));
     document.cookie = `user=${userData}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
     
-    // Set authentication flag
     document.cookie = `isAuthenticated=true; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
   };
 
@@ -39,20 +35,15 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    // Use your existing login function
     const user = login(email, password);
     
     if (user) {
-      // Store user in localStorage for client-side access
       localStorage.setItem('currentUser', JSON.stringify(user));
       localStorage.setItem('isAuthenticated', 'true');
       
-      // Set cookies for middleware server-side access
       setAuthCookies(user);
       
-      // Simulate API delay
       setTimeout(() => {
-        // Redirect based on role
         const defaultRoute = getDefaultRoute(user.role);
         router.push(defaultRoute);
       }, 500);
@@ -64,16 +55,15 @@ export default function LoginPage() {
 
   const handleQuickLogin = (userEmail: string) => {
     setEmail(userEmail);
-    setPassword('password123'); // Default password
+    setPassword('password123');
   };
 
-  // Helper function to get default route
   const getDefaultRoute = (role: string): string => {
     switch(role) {
       case 'admin': return '/dashboard';
-      case 'branch-head': return '/dashboard'; // Changed from '/orders' to '/dashboard'
-      case 'cashier': return '/dashboard'; // Changed from '/pos' to '/dashboard'
-      case 'waiter': return '/dashboard'; // Changed from '/orders' to '/dashboard'
+      case 'branch-head': return '/dashboard';
+      case 'cashier': return '/dashboard';
+      case 'waiter': return '/dashboard';
       default: return '/dashboard';
     }
   };

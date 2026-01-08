@@ -26,7 +26,6 @@ export default function OrderCart({
   selectedTable,
   cart,
   customerName,
-  onCustomerNameChange,
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,

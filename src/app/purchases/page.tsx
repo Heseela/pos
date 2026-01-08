@@ -18,12 +18,10 @@ export default function PurchasesPage() {
   const [supplierFilter, setSupplierFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
 
-  // Load purchases from localStorage on initial render
   useEffect(() => {
     const savedPurchases = localStorage.getItem('purchases');
     if (savedPurchases) {
       const parsedPurchases = JSON.parse(savedPurchases);
-      // Convert date strings back to Date objects
       const purchasesWithDates = parsedPurchases.map((purchase: any) => ({
         ...purchase,
         purchaseDate: new Date(purchase.purchaseDate)
@@ -32,12 +30,10 @@ export default function PurchasesPage() {
     }
   }, []);
 
-  // Save purchases to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('purchases', JSON.stringify(purchases));
   }, [purchases]);
 
-  // Filter purchases based on search term, supplier, and date
   const filteredPurchases = purchases.filter(purchase => {
     const matchesSearch =
       purchase.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -52,7 +48,6 @@ export default function PurchasesPage() {
     return matchesSearch && matchesSupplier && matchesDate;
   });
 
-  // Add new purchase
   const addPurchase = (formData: PurchaseFormData) => {
     const newPurchase: Purchase = {
       id: `P${String(purchases.length + 1).padStart(3, '0')}`,
@@ -70,7 +65,6 @@ export default function PurchasesPage() {
     setShowForm(false);
   };
 
-  // Update existing purchase
   const updatePurchase = (formData: PurchaseFormData) => {
     if (!editingPurchase) return;
 
@@ -94,16 +88,13 @@ export default function PurchasesPage() {
     setShowForm(false);
   };
 
-  // Delete purchase
   const deletePurchase = (id: string) => {
     if (confirm('Are you sure you want to delete this purchase?')) {
       setPurchases(prev => prev.filter(purchase => purchase.id !== id));
     }
   };
 
-  // Handle edit button click
   const handleEdit = (purchase: Purchase) => {
-    // Convert purchase to form data
     const formData: PurchaseFormData = {
       id: purchase.id,
       supplier: purchase.supplier,
@@ -121,12 +112,9 @@ export default function PurchasesPage() {
     };
 
     setEditingPurchase(purchase);
-    // You would need to pass this formData to your PurchaseForm
-    // You might need to update your PurchaseForm to accept initialData
     setShowForm(true);
   };
 
-  // Handle view button click
   const handleView = (purchase: Purchase) => {
     setViewingPurchase(purchase);
     setShowView(true);
@@ -267,7 +255,6 @@ export default function PurchasesPage() {
           </div>
         </div>
 
-        {/* Purchase Table */}
         <PurchaseTable
           purchases={filteredPurchases}
           onEdit={handleEdit}
@@ -276,7 +263,6 @@ export default function PurchasesPage() {
         />
       </div>
 
-      {/* Purchase Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -305,7 +291,6 @@ export default function PurchasesPage() {
         </div>
       )}
 
-      {/* Purchase View Modal */}
       {showView && viewingPurchase && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
